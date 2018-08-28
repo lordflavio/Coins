@@ -94,7 +94,7 @@ class MLP_AG{
             $this->calc_individualFitnessBest($i);
             $this->eletismo();
         }
-        //$this->train($epooc);
+        $this->train($epooc);
         return $this->test();
     }
 

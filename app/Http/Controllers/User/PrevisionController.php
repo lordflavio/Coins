@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\MLP;
+use App\Models\Petr4;
 use App\Models\Soap;
 use App\Models\MLP_AG;
 use Illuminate\Support\Facades\Session;
@@ -47,14 +48,20 @@ class PrevisionController extends Controller
         $coins = $request->coins;
 
         $client = $soap->getSoap();
-        $cotacoes = round($client->getUltimoValorVO(10813)->ultimoValor->valor,3);
+
 
         if($request->coins == "Dolar"){
+
+            $cotacoes[0] = round($client->getUltimoValorVO(1)->ultimoValor->valor,3);
+            $cotacoes[1] = round($client->getUltimoValorVO(10813)->ultimoValor->valor,3);
 
             $array[0] = 1;
             $v = $client->getValoresSeriesVO($array, $date2,$date);
 
             $base = array();
+            $value = array();
+
+
 
             for ($i = 0; $i < count($v[0]->valores); $i++){
                 $base['$'][$i] = round($v[0]->valores[$i]->valor, 3);
@@ -63,17 +70,22 @@ class PrevisionController extends Controller
 
             //$m = new MLP($base['$'],0.90,0.10,0.30,10,0.01,100,2,2,2,0.8,0.8,0.2);
 
-            $m = new  MLP_AG($base['$'],0.90,0.10,0.30,15,0.01,100,1,3,0.7,0.2);
+            $m = new  MLP($base['$'],0.90,0.10,0.30,15,0.01,50,1,3,0.7,0.2);
 
             $k = $m->start(100);
 
-            $value = array();
+
             $week = array();
 
             $b = count($base['$']);
 
-            $week['$'][0] = round( $cotacoes,3);
+            $cont = 0;
+
+            $week['$'][0] = round( $cotacoes[0],3);
             $week['date'][0] = date('d/m/Y');
+
+            $value['$'][$cont] =  $week['$'][0];
+            $value['date'][$cont] = date('Y-m-d');
 
             $prev[0][0] = $base['$'][$b-1];
           //  $prev[0][1] = $base['$'][$b-2];
@@ -83,29 +95,44 @@ class PrevisionController extends Controller
             for($n = 1; $n <= $request->days; $n++){
                 if($aux == 0){
                     $aux = $m->prevision($prev);
-
+                    $cont++;
                     $prev[0][0] = $aux;
                    // $prev[0][1] =  $aux;
 
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
+
                 }else{
                     $aux = $m->prevision($prev);
 
                    // $prev[0][0] = $prev[0][1];
                     $prev[0][0] =  $aux;
+                    $cont++;
 
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
                 }
             }
 
             $h = $request->days;
 
-            return view('user/prediction',compact('week', 'day','coins'));
+            $json_data = json_encode($value);
+
+            //dd($value);
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
         }
 
         else if($request->coins == "Euro"){
+
+            $cotacoes[0] = round($client->getUltimoValorVO(21619)->ultimoValor->valor,2);
+            $cotacoes[1] = round($client->getUltimoValorVO(21620)->ultimoValor->valor,2);
 
             $array[0] = 21620;
             $v = $client->getValoresSeriesVO($array, $date2,$date);
@@ -126,8 +153,13 @@ class PrevisionController extends Controller
 
             $b = count($base['$']);
 
+            $cont = 0;
+
             $week['$'][0] = round( $base['$'][$b-1],3);
             $week['date'][0] = date('d/m/Y');
+
+            $value['$'][$cont] =  $week['$'][0];
+            $value['date'][$cont] = date('Y-m-d');
 
             $prev[0][0] = $base['$'][$b-1];
           //  $prev[0][1] = $base['$'][$b-2];
@@ -141,25 +173,40 @@ class PrevisionController extends Controller
                     $prev[0][0] = $aux;
                    // $prev[0][1] =  $aux;
 
+                    $cont++;
+
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
                 }else{
                     $aux = $m->prevision($prev);
 
                    // $prev[0][0] = $prev[0][1];
                     $prev[0][0] =  $aux;
 
+                    $cont++;
+
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
                 }
             }
 
             $h = $request->days;
 
-            return view('user/prediction',compact('week', 'day','coins'));
+            $json_data = json_encode($value);
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
         }
 
         else if($request->coins == "Libra"){
+
+            $cotacoes[0] = round($client->getUltimoValorVO(21623)->ultimoValor->valor,2);
+            $cotacoes[1] = round($client->getUltimoValorVO(21624)->ultimoValor->valor,2);
 
             $array[0] = 21623;
             $v = $client->getValoresSeriesVO($array, $date2,$date);
@@ -179,9 +226,13 @@ class PrevisionController extends Controller
             $week = array();
 
             $b = count($base['$']);
+            $cont = 0;
 
             $week['$'][0] = round( $base['$'][$b-1],3);
             $week['date'][0] = date('d/m/Y');
+
+            $value['$'][$cont] =  $week['$'][0];
+            $value['date'][$cont] = date('Y-m-d');
 
             $prev[0][0] = $base['$'][$b-1];
           //  $prev[0][1] = $base['$'][$b-2];
@@ -194,26 +245,39 @@ class PrevisionController extends Controller
 
                     $prev[0][0] = $aux;
                    // $prev[0][1] =  $aux;
+                    $cont++;
 
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
                 }else{
                     $aux = $m->prevision($prev);
 
                    // $prev[0][0] = $prev[0][1];
                     $prev[0][0] =  $aux;
+                    $cont++;
 
                     $week['$'][$n] = round( $aux,3);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
                 }
             }
 
             $h = $request->days;
 
-            return view('user/prediction',compact('week', 'day','coins'));
+            $json_data = json_encode($value);
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
         }
 
         else if($request->coins == "Bitcoins"){
+
+            $cot = round($client->getUltimoValorVO(1)->ultimoValor->valor,3);
+
             $dateB =  date('Y-m-d', strtotime('-1 day'));
 
             $date2B = date('Y').'-01-01';
@@ -243,8 +307,12 @@ class PrevisionController extends Controller
                 $bitValue[0][0] = $a;
             }
 
-            //  dd($json);
+            $value = array();
+            $cont = 0;
 
+            $cotacoes[0] = round($bitValue[0][0] * $cot, 2);
+
+            //  dd($json);
 
             //$bitcoinValue =  round( $bitValue *  $cotacoes[1],2);
 
@@ -257,20 +325,85 @@ class PrevisionController extends Controller
 
                     $bitValue[0][0] = $aux;
 
-                    $week['$'][$n] = round( $aux *  $cotacoes,2);
+                    $week['$'][$n] = round( $aux *  $cot,2);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
 
                 }else{
                     $aux = $m->prevision($bitValue);
 
                     $bitValue[0][0] = $aux;
+                    $cont++;
 
-                    $week['$'][$n] = round( $aux *  $cotacoes,2);
+                    $week['$'][$n] = round( $aux *  $cot,2);
                     $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
 
                 }
             }
-            return view('user/prediction',compact('week', 'day','coins'));
+
+            $json_data = json_encode($value);
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
+        }
+
+        else if($request->coins == "Petr4"){
+
+            $base = Petr4::readGlobalStock();
+
+            /*(base, baseTrain, baseValidade, test, hiddenNeurons, learning, populationSize, c1, c2, window, wInertia, maxInertia, minInertia)*/
+            $m = new MLP($base['close'],0.80,0.10,0.30,10,0.01,100,1,2,2,0.8,0.8,0.2);
+
+            $k = $m->start(100);
+
+           // $b = count($base['close']);
+
+            $value = array();
+            $cont = 0;
+
+            //  dd($json);
+
+            $week = array();
+
+            $v[0][0] = round( $base['close'][0],2);
+
+            $cotacoes[0] = $v[0][0];
+
+            $aux = 0;
+            for($n = 0; $n <= $request->days; $n++){
+                if($n == 0){
+                    $aux = $m->prevision($v);
+
+                    $v[0][0] = $aux;
+
+                    $week['$'][$n] = round( $aux,2);
+                    $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
+
+                }else{
+                    $aux = $m->prevision($v);
+
+                    $v[0][0] = $aux;
+                    $cont++;
+
+                    $week['$'][$n] = round( $aux,2);
+                    $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                    $value['$'][$cont] = $week['$'][$n];
+                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
+
+                }
+            }
+
+            $json_data = json_encode($value);
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
         }
 
         else{
@@ -322,6 +455,11 @@ class PrevisionController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function list($day, $coins, $list){
+        $week = json_decode($list);
+        return view('user/pdf/prevision-download',compact('day','coins','week'));
     }
 
     static public function getYesterday(){
