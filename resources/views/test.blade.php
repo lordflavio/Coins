@@ -31,9 +31,10 @@
                 var data = "";
 
                 for(i = 0; i < jdate["$"].length; i++){
-                    data = data + jdate['date'][i]+","+ jdate['$'][i] +","+jdate['&'][i]+ "\n";
+                    var x = new Date(0);
+                    x.setUTCSeconds(jdate['date'][i]);
+                    data = data + x +","+ jdate['$'][i] +","+jdate['&'][i]+ "\n";
                 }
-
 
         new Dygraph(document.getElementById("div_g"), data, {
             labels: [ "Date", "Real", "Previsto" ],

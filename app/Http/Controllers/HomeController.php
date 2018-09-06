@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Cryptocoins\BTC;
+use App\Models\Cryptocoins\DASH;
+use App\Models\Cryptocoins\LTC;
+use App\Models\Cryptocoins\XMR;
 use App\Models\MLP;
 use App\Models\MLP_AG;
 use App\Models\Petr4;
@@ -262,7 +265,6 @@ class HomeController extends Controller
 
     }
 
-
     public function petr4(){
 
         $base = Petr4::readGlobalStock();
@@ -304,7 +306,6 @@ class HomeController extends Controller
         return view('user/actions/petr4',compact('cotacoes', 'json_data','week'));
 
     }
-
 
     static public function getYesterday(){
         //	$url = "http://api.coindesk.com/v1/bpi/historical/close.json?start=$start_date&end=$end_date";
@@ -360,10 +361,13 @@ class HomeController extends Controller
 
     public function test (Soap $soap){
 
-        $base = Petr4::readGlobalStock();
+
+        $base =  XMR::readHour();
+
+       // dd($base);
 
                     /*(base, baseTrain, baseValidade, test, hiddenNeurons, learning, populationSize, c1, c2, window, wInertia, maxInertia, minInertia)*/
-        $m = new MLP_AG($base['close'],0.90,0.10,0.30,10,0.01,100,1,2,2,0.8,0.8,0.2);
+        $m = new MLP($base['close'],0.90,0.10,0.30,10,0.01,100,1,2,2,0.8,0.8,0.2);
 
         $k = $m->start(100);
 
@@ -381,5 +385,95 @@ class HomeController extends Controller
 
         return view('test',compact('json_data'));
 
+    }
+
+
+    /**
+     * Crypitoncoins
+     */
+
+    public function btc (Soap $soap){
+        $client = $soap->getSoap();
+        $dolar = $client->getUltimoValorVO(1)->ultimoValor->valor;
+
+        $btcDay = BTC::readDay();
+        $btcHour = BTC::readHour();
+        $btcMinute = BTC::readMinute();
+
+        $coinsDay = array();
+        $coinsHour = array();
+        $coinsMinute = array();
+
+        for ($i = 0; $i < count($btcDay['date']); $i++){
+            $coinsDay['$'][$i] = round( $btcDay['close'][$i] *  $dolar,2);
+            $coinsDay['date'][$i] = date('Y-m-d', $btcDay['date'][$i]);
+        }
+        for ($i = 0; $i < count($btcHour['date']); $i++){
+            $coinsHour['$'][$i] = round( $btcHour['close'][$i] *  $dolar,2);
+            $coinsHour['date'][$i] =  $btcHour['date'][$i];
+        }
+        for ($i = 0; $i < count($btcMinute['date']); $i++){
+            $coinsMinute['$'][$i] = round( $btcMinute['close'][$i] *  $dolar,2);
+            $coinsMinute['date'][$i] =  $btcMinute['date'][$i];
+        }
+
+        $weekDay = array();
+        $weekHour = array();
+        $weekMinute = array();
+
+        $cont = 0;
+
+        for ($j = (count($coinsDay['$']) -1); $j > (count($coinsDay['$']) - 8); $j-- ){
+            $weekDay['$'][$cont] = $coinsDay['$'][$j];
+            $weekDay['date'][$cont] = $coinsDay['date'][$j];
+            $cont++;
+        }
+        for ($j = (count($coinsHour['$']) -1); $j > (count($coinsHour['$']) - 8); $j-- ){
+            $weekHour['$'][$cont] = $coinsHour['$'][$j];
+            $weekHour['date'][$cont] = $coinsHour['date'][$j];
+            $cont++;
+        }
+        for ($j = (count($coinsMinute['$']) -1); $j > (count($coinsMinute['$']) - 8); $j-- ){
+            $weekMinute['$'][$cont] = $coinsMinute['$'][$j];
+            $weekMinute['date'][$cont] = $coinsMinute['date'][$j];
+            $cont++;
+        }
+
+        $json_data = json_encode($coinsDay);
+        $json_data1 = json_encode($coinsHour);
+        $json_data2 = json_encode($coinsMinute);
+
+        $coinsToday = BTC::readDay(0);
+
+        //echo date('d/m/Y', $coinsToday['date'][1]);
+
+       // dd($coins);
+
+        return view('user/coins/cryptocoins/btc',compact('json_data','json_data1','json_data2','coinsToday','weekDay','weekHour','weekMinute','dolar'));
+    }
+
+    public function dash (){
+        return view('');
+    }
+
+    public function eth (){
+        return view('');
+    }
+
+    public function ltc (){
+        return view('');
+    }
+
+    public function xmr (){
+        return view('');
+    }
+
+
+    static public function segToData($time){
+        $data = Array();
+        for ($index = 0; $index < count($time); $index++) {
+            $data[$index] = gmdate("Y-m-d H:i:s", $time[$index]);
+        }
+        return $data;
     }
 }
