@@ -37,7 +37,7 @@ Route::group(['middleware' => ['auth']], function() {
     /*
      * Crypitocoins
      * */
-    Route::match(['get','post'], '/btc', 'HomeController@btc')->name('btc');
+    Route::match(['get','post'], '/btc/{option}', 'HomeController@btc')->name('btc');
     Route::match(['get','post'], '/dash', 'HomeController@dash')->name('dash');
     Route::match(['get','post'], '/eth', 'HomeController@eth')->name('eth');
     Route::match(['get','post'], '/ltc', 'HomeController@ltc')->name('ltc');
@@ -47,8 +47,6 @@ Route::group(['middleware' => ['auth']], function() {
     Route::match(['get','post'], '/xmr', 'HomeController@xrb')->name('xrb');
     Route::match(['get','post'], '/xmr', 'HomeController@xrp')->name('xrp');
     Route::match(['get','post'], '/xmr', 'HomeController@xvg')->name('xvg');
-
-
 });
 
 

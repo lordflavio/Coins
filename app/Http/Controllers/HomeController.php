@@ -392,64 +392,59 @@ class HomeController extends Controller
      * Crypitoncoins
      */
 
-    public function btc (Soap $soap){
+    public function btc ($option = "day"){
+        if($option == "day"){$type = 0;}else if($option == "hour"){$type = 1;}else if($option == "minute"){$type = 2;}
+
+        $soap = new Soap();
         $client = $soap->getSoap();
         $dolar = $client->getUltimoValorVO(1)->ultimoValor->valor;
 
         $btcDay = BTC::readDay();
-        $btcHour = BTC::readHour();
-        $btcMinute = BTC::readMinute();
+        $btcHour = BTC::readHour(24);
+        $btcMinute = BTC::readMinute(60);
 
-        $coinsDay = array();
-        $coinsHour = array();
-        $coinsMinute = array();
+        $coins = array();
 
-        for ($i = 0; $i < count($btcDay['date']); $i++){
-            $coinsDay['$'][$i] = round( $btcDay['close'][$i] *  $dolar,2);
-            $coinsDay['date'][$i] = date('Y-m-d', $btcDay['date'][$i]);
-        }
-        for ($i = 0; $i < count($btcHour['date']); $i++){
-            $coinsHour['$'][$i] = round( $btcHour['close'][$i] *  $dolar,2);
-            $coinsHour['date'][$i] =  $btcHour['date'][$i];
-        }
-        for ($i = 0; $i < count($btcMinute['date']); $i++){
-            $coinsMinute['$'][$i] = round( $btcMinute['close'][$i] *  $dolar,2);
-            $coinsMinute['date'][$i] =  $btcMinute['date'][$i];
+
+        if($type == 0){
+            for ($i = 0; $i < count($btcDay['date']); $i++){
+                $coins['$'][$i] = round( $btcDay['close'][$i] *  $dolar,2);
+                $coins['date'][$i] =  $btcDay['date'][$i];
+            }
+        }else if ($type == 1){
+            for ($i = 0; $i < count($btcHour['date']); $i++){
+                $coins['$'][$i] = round( $btcHour['close'][$i] *  $dolar,2);
+                $coins['date'][$i] =  $btcHour['date'][$i];
+            }
+        }else if ($type == 2){
+            for ($i = 0; $i < count($btcMinute['date']); $i++){
+                $coins['$'][$i] = round( $btcMinute['close'][$i] *  $dolar,2);
+                $coins['date'][$i] =  $btcMinute['date'][$i];
+            }
         }
 
-        $weekDay = array();
-        $weekHour = array();
-        $weekMinute = array();
+
+        $week = array();
 
         $cont = 0;
 
-        for ($j = (count($coinsDay['$']) -1); $j > (count($coinsDay['$']) - 8); $j-- ){
-            $weekDay['$'][$cont] = $coinsDay['$'][$j];
-            $weekDay['date'][$cont] = $coinsDay['date'][$j];
-            $cont++;
-        }
-        for ($j = (count($coinsHour['$']) -1); $j > (count($coinsHour['$']) - 8); $j-- ){
-            $weekHour['$'][$cont] = $coinsHour['$'][$j];
-            $weekHour['date'][$cont] = $coinsHour['date'][$j];
-            $cont++;
-        }
-        for ($j = (count($coinsMinute['$']) -1); $j > (count($coinsMinute['$']) - 8); $j-- ){
-            $weekMinute['$'][$cont] = $coinsMinute['$'][$j];
-            $weekMinute['date'][$cont] = $coinsMinute['date'][$j];
+        for ($j = (count($coins['$']) -1); $j > (count($coins['$']) - 8); $j-- ){
+            $date = date('Y-m-d H:i',$coins['date'][$j]);
+            $week['$'][$cont] = $coins['$'][$j];
+            $week['date'][$cont] = substr($date, 0, 10);
+            $week['time'][$cont] = substr($date, 11, 8);
             $cont++;
         }
 
-        $json_data = json_encode($coinsDay);
-        $json_data1 = json_encode($coinsHour);
-        $json_data2 = json_encode($coinsMinute);
+        $json_data = json_encode($coins);
 
         $coinsToday = BTC::readDay(0);
 
         //echo date('d/m/Y', $coinsToday['date'][1]);
 
-       // dd($coins);
+        //dd($week);
 
-        return view('user/coins/cryptocoins/btc',compact('json_data','json_data1','json_data2','coinsToday','weekDay','weekHour','weekMinute','dolar'));
+        return view('user/coins/cryptocoins/btc',compact('json_data','coinsToday','week','dolar','type'));
     }
 
     public function dash (){
