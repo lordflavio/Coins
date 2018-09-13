@@ -1,8 +1,79 @@
 @extends('layouts.system')
 
-@section('content')<br>
+@section('content')
+<section class="content-header">
+    <h1>
+        Previsões
+        <small>{{$coins}}</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="/home"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">{{$coins}}</li>
+    </ol>
+</section>
 <!-- Main content -->
 <section class="content">
+    <div class="row">
+        <h1 class="text-center">Hoje</h1>
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box bg-green-active">
+                <span class="info-box-icon"><i class="fa fa-btc"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text"> Open </span>
+                    <span class="info-box-number">R$ {{round( $coinsToday['open'][1] * $dolar,2)}}</span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 70%"></div>
+                    </div>
+                    <span class="progress-description">
+                            {{date('d/m/Y', $coinsToday['date'][1])}}
+                        </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box bg-aqua-active">
+                <span class="info-box-icon"><i class="fa fa-btc"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text"> Close </span>
+                    <span class="info-box-number">R$ {{round( $coinsToday['close'][1] * $dolar,2)}}</span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 70%"></div>
+                    </div>
+                    <span class="progress-description">
+                            {{date('d/m/Y', $coinsToday['date'][1])}}
+                        </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-4 col-sm-6 col-xs-12">
+            <div class="info-box bg-green-active">
+                <span class="info-box-icon"><i class="fa fa-btc"></i></span>
+
+                <div class="info-box-content">
+                    <span class="info-box-text"> Volume </span>
+                    <span class="info-box-number">{{$coinsToday['volumeto'][1]}}</span>
+
+                    <div class="progress">
+                        <div class="progress-bar" style="width: 70%"></div>
+                    </div>
+                    <span class="progress-description">
+                            {{date('d/m/Y', $coinsToday['date'][1])}}
+                        </span>
+                </div>
+                <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+        </div>
     <div class="row">
         <div class="col-xs-4">
             <div class="box box-success">
@@ -14,15 +85,15 @@
                     <table id="example2" class="table table-bordered table-hover">
                         <thead>
                         <tr>
-                            <th class="text-center" style="width: 100px">Dia</th>
+                            <th class="text-center" style="width: 100px">{{$time}}</th>
                             <th class="text-center">Previsão</th>
                         </tr>
                         </thead>
                         <tbody>
-                            @for($i = 0; $i < count($week['$']); $i++)
+                            @for($i = 0; $i < count($week['valor']); $i++)
                                 <tr>
                                     <td class="text-center">{{$week['date'][$i]}}</td>
-                                    <td class="text-center">R$ {{$week['$'][$i]}}</td>
+                                    <td class="text-center">R$ {{$week['valor'][$i]}}</td>
                                 </tr>
                             @endfor
                         </tbody>
@@ -32,66 +103,6 @@
             </div>
             <!-- /.box -->
         </div>
-        @if(count($cotacoes) > 1)
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box bg-aqua-active">
-                <span class="info-box-icon"><i class="fa fa-dollar"></i></span>
-
-                <div class="info-box-content">
-                    <span class="info-box-text">Compra Hoje </span>
-                    <span class="info-box-number">R$ {{$cotacoes[1]}}</span>
-
-                    <div class="progress">
-                        <div class="progress-bar" style="width: 70%"></div>
-                    </div>
-                    <span class="progress-description">
-
-                        </span>
-                </div>
-                <!-- /.info-box-content -->
-            </div>
-            <!-- /.info-box -->
-        </div>
-
-        <div class="col-md-3 col-sm-6 col-xs-12">
-            <div class="info-box bg-green-active">
-                <span class="info-box-icon"><i class="fa fa-dollar"></i></span>
-
-                <div class="info-box-content">
-                    <span class="info-box-text">Venda Hoje </span>
-                    <span class="info-box-number">R$ {{$cotacoes[0]}}</span>
-
-                    <div class="progress">
-                        <div class="progress-bar" style="width: 70%"></div>
-                    </div>
-                    <span class="progress-description">
-                        </span>
-                </div>
-                <!-- /.info-box-content -->
-            </div>
-            <!-- /.info-box -->
-        </div>
-        @else
-            <div class="col-md-3 col-sm-6 col-xs-12">
-                <div class="info-box bg-aqua-active">
-                    <span class="info-box-icon"><i class="fa fa-dollar"></i></span>
-
-                    <div class="info-box-content">
-                        <span class="info-box-text"> 1 Bitcoins </span>
-                        <span class="info-box-number">R$ {{$cotacoes[0]}}</span>
-
-                        <div class="progress">
-                            <div class="progress-bar" style="width: 70%"></div>
-                        </div>
-                        <span class="progress-description">
-
-                        </span>
-                    </div>
-                    <!-- /.info-box-content -->
-                </div>
-                <!-- /.info-box -->
-            </div>
-        @endif
 
         <div class="col-md-8">
             <div class="box box-success">
@@ -101,11 +112,17 @@
 
         <div class="col-md-4 col-sm-6 col-xs-12">
 
-            <a href="/list/{{$day}}/{{$coins}}/{{'asfasdf'}}"><button class="btn-lg btn-primary"> Baixar Previsão PDF <i class="fa fa-download" aria-hidden="true"></i></button></a>
+            <a href="/list/{{$day}}/{{$coins}}/{{$json_data}}"><button class="btn-lg btn-primary"> Baixar Previsão PDF <i class="fa fa-download" aria-hidden="true"></i></button></a>
 
         </div>
 
     </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+
+            <a href="/btc/{{$time}}"><button class="btn-lg btn-info center-block"> Voltar | Refazer Previsão <i class="fa fa-chevron-left" aria-hidden="true"></i></button></a>
+
+        </div>
 
 <style>
     .chart {
@@ -130,8 +147,8 @@
 
                 var data = "";
 
-                for(i = 0; i < jdate["$"].length; i++){
-                    data = data + jdate['date'][i]+","+ jdate['$'][i] + "\n";
+                for(i = 0; i < jdate["valor"].length; i++){
+                    data = data + jdate['date'][i]+","+ jdate['valor'][i] + "\n";
                 }
 
                 new Dygraph(

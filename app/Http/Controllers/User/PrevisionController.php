@@ -2,6 +2,17 @@
 
 namespace App\Http\Controllers\User;
 
+use App\Models\Cryptocoins\BTC;
+use App\Models\Cryptocoins\DASH;
+use App\Models\Cryptocoins\ETH;
+use App\Models\Cryptocoins\LTC;
+use App\Models\Cryptocoins\NEO;
+use App\Models\Cryptocoins\WAVES;
+use App\Models\Cryptocoins\XMR;
+use App\Models\Cryptocoins\XRB;
+use App\Models\Cryptocoins\XRP;
+use App\Models\Cryptocoins\XVG;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\MLP;
@@ -12,32 +23,6 @@ use Illuminate\Support\Facades\Session;
 
 class PrevisionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request,Soap $soap)
     {
 
@@ -274,83 +259,6 @@ class PrevisionController extends Controller
             return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
         }
 
-        else if($request->coins == "Bitcoins"){
-
-            $cot = round($client->getUltimoValorVO(1)->ultimoValor->valor,3);
-
-            $dateB =  date('Y-m-d', strtotime('-1 day'));
-
-            $date2B = date('Y').'-01-01';
-
-
-            $json = json_decode($this->getRange($date2B,$dateB));
-
-            $base = array();
-
-            $i = 0;
-
-            foreach ($json->bpi as $j => $a){
-                $base['$'][$i] = $a;
-                $base['date'][$i] = $j;
-                $i++;
-            }
-
-            /*(base, baseTrain, baseValidade, test, hiddenNeurons, learning, populationSize, c1, c2, window, wInertia, maxInertia, minInertia)*/
-            $m = new MLP($base['$'],0.80,0.10,0.30,10,0.01,100,1,2,2,0.8,0.8,0.2);
-
-            $k = $m->start(100);
-
-
-            $bit = json_decode($this->getYesterday());
-            $bitValue = array();
-            foreach ($bit->bpi as $j => $a){
-                $bitValue[0][0] = $a;
-            }
-
-            $value = array();
-            $cont = 0;
-
-            $cotacoes[0] = round($bitValue[0][0] * $cot, 2);
-
-            //  dd($json);
-
-            //$bitcoinValue =  round( $bitValue *  $cotacoes[1],2);
-
-            $week = array();
-
-            $aux = 0;
-            for($n = 0; $n < $request->days; $n++){
-                if($n == 0){
-                    $aux = $m->prevision($bitValue);
-
-                    $bitValue[0][0] = $aux;
-
-                    $week['$'][$n] = round( $aux *  $cot,2);
-                    $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
-
-                    $value['$'][$cont] = $week['$'][$n];
-                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
-
-                }else{
-                    $aux = $m->prevision($bitValue);
-
-                    $bitValue[0][0] = $aux;
-                    $cont++;
-
-                    $week['$'][$n] = round( $aux *  $cot,2);
-                    $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
-
-                    $value['$'][$cont] = $week['$'][$n];
-                    $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
-
-                }
-            }
-
-            $json_data = json_encode($value);
-
-            return view('user/prediction',compact('week', 'day','coins','json_data','cotacoes'));
-        }
-
         else if($request->coins == "Petr4"){
 
             $base = Petr4::readGlobalStock();
@@ -412,54 +320,134 @@ class PrevisionController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+    public function cryptocoins (Request $request,Soap $soap){
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+            $day = $request->days;
+            $coins = $request->coins;
+            $time = $request->time;
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+            $client = $soap->getSoap();
+            $dolar = $client->getUltimoValorVO(1)->ultimoValor->valor;
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+            $base = self::getBase(1);
+
+           // dd($base);
+
+            /*(base, baseTrain, baseValidade, test, hiddenNeurons, learning, populationSize, c1, c2, window, wInertia, maxInertia, minInertia)*/
+            $m = new MLP($base[$time]['close'],0.90,0.10,0.30,10,0.01,150,1,2,2,0.8,0.8,0.2);
+
+            $k = $m->start(200);
+
+            $value = array();
+            $cont = 0;
+
+            $week = array();
+
+
+
+            if($time == 'day'){
+                $v[0][0] = $base['today']['close'][1];
+                $today = $base['today']['close'][1];
+            }else if($time == 'hour'){
+                $today =  BTC::readHour(0);
+                $v[0][0] = $today['close'][1];
+            }else if($time == 'minute'){
+                $today =  BTC::readMinute(0);
+                $v[0][0] = $today['close'][1];
+            }
+
+
+            $data = $today['date'][1];
+
+            $aux = 0;
+
+            for($n = 0; $n <= $request->days; $n++){
+                if($n == 0){
+                    $aux = $m->prevision($v);
+
+                    $v[0][0] = $aux;
+
+
+                    if($time == "day"){
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
+
+                    }else if($time == "hour"){
+
+                        $data = $data + 60*60;
+
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('H:i',$data );
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d H:i',$data ) ;
+
+                    }else if($time == "minute"){
+
+                        $data = $data + 60*1;
+
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('H:i',$data);
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d H:i',$data);
+                    }
+
+
+                }else{
+                    $aux = $m->prevision($v);
+
+                    $v[0][0] = $aux;
+                    $cont++;
+
+                    if($time == "day"){
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('d/m/Y', strtotime('+'.$n.' days'));
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d', strtotime('+'.$n.' days'));
+
+                    }else if($time == "hour"){
+
+                        $data = $data + 60*60;
+
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('H:i',$data );
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d H:i',$data );
+
+                    }else if($time == "minute"){
+
+                        $data = $data + 60*1;
+
+                        $week['valor'][$n] = round( $aux * $dolar,2);
+                        $week['date'][$n] = date('H:i',$data);
+
+                        $value['valor'][$cont] = $week['valor'][$n];
+                        $value['date'][$cont] = date('Y-m-d H:i',$data);
+                    }
+
+                }
+            }
+
+            $json_data = json_encode($value);
+
+            $coinsToday = $base['today'];
+
+            return view('user/prediction',compact('week', 'day','coins','json_data','dolar','coinsToday','time'));
+
     }
 
     public function list($day, $coins, $list){
+
         $week = json_decode($list);
-        return view('user/pdf/prevision-download',compact('day','coins','week'));
+
+        return \PDF::loadView('user/pdf/prevision-download',compact('day','coins','week'))->download('Previsão '.$coins.'.pdf');
+       // return view('user/pdf/prevision-download',compact('day','coins','week'));
     }
 
     static public function getYesterday(){
@@ -513,4 +501,65 @@ class PrevisionController extends Controller
 
         return $output;
     }
+
+    static private function getBase($value){
+
+        $values = array();
+
+        if($value = 1){
+            $values['day'] = BTC::readDay();
+            $values['hour'] = BTC::readHour();
+            $values['minute'] = BTC::readHour();
+            $values['today'] = BTC::readDay(0);
+        }else if($value = 2){
+            $values['day'] = DASH::readDay();
+            $values['hour'] = DASH::readHour();
+            $values['minute'] = DASH::readMinute();
+            $values['today'] = DASH::readDay(0);
+        }else if($value = 3){
+            $values['day'] = NEO::readDay();
+            $values['hour'] = NEO::readHour();
+            $values['minute'] = NEO::readMinute();
+            $values['today'] = NEO::readDay(0);
+        }else if($value = 4){
+            $values['day'] = ETH::readDay();
+            $values['hour'] = ETH::readHour();
+            $values['minute'] = ETH::readMinute();
+            $values['today'] = ETH::readDay(0);
+        }else if($value = 5){
+            $values['day'] = LTC::readDay();
+            $values['hour'] = LTC::readHour();
+            $values['minute'] = LTC::readMinute();
+            $values['today'] = LTC::readDay(0);
+        }else if($value = 6){
+            $values['day'] = WAVES::readDay();
+            $values['hour'] = WAVES::readHour();
+            $values['minute'] = WAVES::readMinute();
+            $values['today'] = WAVES::readDay(0);
+        }else if($value = 7){
+            $values['day'] = XMR::readDay();
+            $values['hour'] = XMR::readHour();
+            $values['minute'] = XMR::readMinute();
+            $values['today'] = XMR::readDay(0);
+        }else if($value = 8){
+            $values['day'] = XRP::readDay();
+            $values['hour'] = XRP::readHour();
+            $values['minute'] = XRP::readMinute();
+            $values['today'] = XRP::readDay(0);
+        }else if($value = 9){
+            $values['day'] = XVG::readDay();
+            $values['hour'] = XVG::readHour();
+            $values['minute'] = XVG::readMinute();
+            $values['today'] = XVG::readDay(0);
+        }else if($value = 10){
+            $values['day'] = XRB::readDay();
+            $values['hour'] = XRB::readHour();
+            $values['minute'] = XRB::readMinute();
+            $values['today'] = XRB::readDay(0);
+        }
+
+
+        return $values;
+    }
+
 }

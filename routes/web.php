@@ -31,8 +31,9 @@ Route::group(['middleware' => ['auth']], function() {
     Route::match(['get','post'], '/petr4', 'HomeController@petr4')->name('petr4');
 
     Route::match(['get','post'], '/prediction', 'User\PrevisionController@store')->name('prediction');
+    Route::match(['get','post'], '/prediction/coins', 'User\PrevisionController@cryptocoins')->name('coins');
     Route::match(['get','post'], '/test', 'HomeController@test')->name('test');
-    Route::post('/list/{day}/{coins}/{list}','User\PrevisionController@list')->name('list');
+    Route::match(['get','post'],'/list/{day}/{coins}/{list}','User\PrevisionController@list')->name('list');
 
     /*
      * Crypitocoins

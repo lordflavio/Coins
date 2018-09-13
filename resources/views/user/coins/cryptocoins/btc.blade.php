@@ -217,7 +217,7 @@
                         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span>
                         </button>
                     </div>
-                    <form action="{{route('prediction')}}" method="POST">
+                    <form action="{{route('coins')}}" method="POST">
                         {{ csrf_field() }}
                         <input style="display: none" type="text" name="coins" value="Bitcoins">
                         <div class="modal-body">
@@ -226,23 +226,31 @@
                                 <div class="form-group">
                                     <label>Dias</label>
                                     <select class="form-control" name="days" style="width: 100%;">
-                                        <option value="5" selected="selected">5</option>
-                                        <option value="10" > 10 </option>
+                                        <option value="1" selected="selected">1</option>
+                                        <option value="3" > 3 </option>
+                                        <option value="7" > 7 </option>
                                         <option value="15" > 15 </option>
-                                        {{--<option value="20" > 20 </option>--}}
-                                        {{--<option value="30" > 30  </option>--}}
-                                        {{--<option value="45" > 45 </option>--}}
+                                        <option value="30" > 30  </option>
                                     </select>
                                 </div>
                                 <!-- /.form-group -->
                             </div>
+
                             <div class="col-md-6">
-                                <h5 class="text-center" style="color: #0b93d5">Cada dia corresponde a uma previsão de valor futura </h5>
-                            </div><br>
+                                <div class="form-group">
+                                    <label>Prever Para:</label>
+                                    <select class="form-control" name="time" style="width: 100%;">
+                                        <option value="day" selected="selected">Dias</option>
+                                        <option value="hour" > Horas </option>
+                                        <option value="minute" > Minutos </option>
+                                    </select>
+                                </div>
+                                <!-- /.form-group -->
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
+                            <button type="submit" class="btn btn-primary">Prever</button>
                         </div>
                     </form>
                 </div>
@@ -275,10 +283,10 @@
                 var data = "";
 
                 for(i = 0; i < jdate["$"].length; i++){
-                    var x = new Date(0);
-                    x.setSeconds(jdate['date'][i]);
-                    data = data + x +","+ jdate['$'][i]+ "\n";
+                    data = data + jdate['date'][i] +","+ jdate['$'][i]+ "\n";
                 }
+
+                console.log(data);
 
                 new Dygraph(document.getElementById("div_g"), data, {
                     labels: [ "Date", "R$" ],
@@ -290,12 +298,12 @@
                             canvas.fillRect(canvas_left_x, area.y, canvas_width, area.h);
                         }
 
-                        var min_data_x = g.getValue(0,0);
-                        var max_data_x = g.getValue(g.numRows()-1,0);
-
-//                         get day of week
-                        var d = new Date(min_data_x);
-                        var dow = d.getUTCDay();
+//                        var min_data_x = g.getValue(0,0);
+//                        var max_data_x = g.getValue(g.numRows()-1,0);
+//
+////                         get day of week
+//                        var d = new Date(min_data_x);
+//                        var dow = d.getUTCDay();
                     },
 
                 });

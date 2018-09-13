@@ -362,12 +362,12 @@ class HomeController extends Controller
     public function test (Soap $soap){
 
 
-        $base =  XMR::readHour();
+        $base =  BTC::readHour();
 
        // dd($base);
 
                     /*(base, baseTrain, baseValidade, test, hiddenNeurons, learning, populationSize, c1, c2, window, wInertia, maxInertia, minInertia)*/
-        $m = new MLP($base['close'],0.90,0.10,0.30,10,0.01,100,1,2,2,0.8,0.8,0.2);
+        $m = new MLP($base['close'],0.90,0.10,0.30,10,0.01,150,1,2,2,0.8,0.8,0.2);
 
         $k = $m->start(100);
 
@@ -409,27 +409,28 @@ class HomeController extends Controller
         if($type == 0){
             for ($i = 0; $i < count($btcDay['date']); $i++){
                 $coins['$'][$i] = round( $btcDay['close'][$i] *  $dolar,2);
-                $coins['date'][$i] =  $btcDay['date'][$i];
+                $coins['date'][$i] =  date('Y-m-d',$btcDay['date'][$i]);
             }
         }else if ($type == 1){
             for ($i = 0; $i < count($btcHour['date']); $i++){
                 $coins['$'][$i] = round( $btcHour['close'][$i] *  $dolar,2);
-                $coins['date'][$i] =  $btcHour['date'][$i];
+                $coins['date'][$i] = date('Y-m-d H:i',$btcHour['date'][$i]);
             }
         }else if ($type == 2){
             for ($i = 0; $i < count($btcMinute['date']); $i++){
                 $coins['$'][$i] = round( $btcMinute['close'][$i] *  $dolar,2);
-                $coins['date'][$i] =  $btcMinute['date'][$i];
+                $coins['date'][$i] =  date('Y-m-d H:i',$btcMinute['date'][$i]);
             }
         }
 
+        //dd($coins);
 
         $week = array();
 
         $cont = 0;
 
         for ($j = (count($coins['$']) -1); $j > (count($coins['$']) - 8); $j-- ){
-            $date = date('Y-m-d H:i',$coins['date'][$j]);
+            $date = $coins['date'][$j];
             $week['$'][$cont] = $coins['$'][$j];
             $week['date'][$cont] = substr($date, 0, 10);
             $week['time'][$cont] = substr($date, 11, 8);
@@ -442,7 +443,7 @@ class HomeController extends Controller
 
         //echo date('d/m/Y', $coinsToday['date'][1]);
 
-        //dd($week);
+
 
         return view('user/coins/cryptocoins/btc',compact('json_data','coinsToday','week','dolar','type'));
     }
@@ -461,14 +462,5 @@ class HomeController extends Controller
 
     public function xmr (){
         return view('');
-    }
-
-
-    static public function segToData($time){
-        $data = Array();
-        for ($index = 0; $index < count($time); $index++) {
-            $data[$index] = gmdate("Y-m-d H:i:s", $time[$index]);
-        }
-        return $data;
     }
 }
